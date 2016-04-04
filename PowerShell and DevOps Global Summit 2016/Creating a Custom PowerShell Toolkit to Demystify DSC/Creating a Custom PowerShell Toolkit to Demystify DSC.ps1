@@ -472,8 +472,7 @@ New-Item -Path .\configdata-dscdemo.psd1 -ItemType File -Force -Value "
 #Are you considering the use of Active Directory GUID's for the DSC ConfigurationID? Don't and here's why not:
 #Securely allocating GUIDs in PowerShell Desired State Configuration Pull Mode https://blogs.msdn.microsoft.com/powershell/2014/12/31/securely-allocating-guids-in-powershell-desired-state-configuration-pull-mode/
 
-
-#Show the file are named with the GUID that is set in the LCM
+#Show the LCM settings for SQL01
 
 Get-DscLocalConfigurationManager -CimSession SQL01 |
 Format-Table -Property PSComputerName,
@@ -501,7 +500,8 @@ Publish-MrMOFToSMB -Verbose
 
 Publish-MrDSCResourceToSMB -Name cMrSQLRecoveryModel -SMBPath '\\DC01\DSCSMB-SQL'
 
-#Show (and pin) the modules that are installed on SQL01
+#Show (and pin) the modules that are installed on SQL01.
+#Show the files are named using the Guid that's set for the ConfigurationID in the LCM settings
 
 Start-Process '\\SQL01\c$\Program Files\WindowsPowerShell\Modules'
 
@@ -515,7 +515,7 @@ Update-DscConfiguration -ComputerName SQL01 -Wait -Verbose
 
 #Show the event logs where the DSC resource was successfully deployed
 
-Get-MrDscLogs -ComputerName SQL01 -MaxEvents 12 |
+Get-MrDscLog -ComputerName SQL01 -MaxEvents 12 |
 Select-Object -ExpandProperty Message | Out-GridView
 
 #A new way to define the SMB Pull Server in PowerShell version 5
@@ -571,17 +571,6 @@ Format-Table -Property PSComputerName,
                        RefreshMode,
                        ConfigurationModeFrequencyMins,
                        RefreshFrequencyMins
-
-#endregion
-
-
-#region Bonus Content
-
-#Things to show:
-Get-MrFunctionsToExport
-Test-MrFunctionsToExport
-
-#Both are part of my MrToolkit module that can be downloaded from my PowerShell repository on Github: https://github.com/mikefrobbins/PowerShell
 
 #endregion
 
