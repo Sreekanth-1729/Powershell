@@ -16,27 +16,48 @@ Twitter: @mikefrobbins
 
 #The functions shown in this session are part of my MrSQL module which can be downloaded from GitHub: https://github.com/mikefrobbins/SQL
 
-#6 VM's are used during this demonstration. 2 running Windows 10 (PC01 and PC02),
+#8 VM's are used during this demonstration. 2 running Windows 10 (PC01 and PC02), 1 running Windows 8.1 (PC03),
 #3 running Windows Server 2012 R2, one DC (DC01), one SQL 2014 Server (SQL01), and one running SQL 2008 R2 (SQL02),
+#1 running Windows Server 2016 TP4 with SQL Server 2016 RC2 (SQL04)
 #1 running Windows Server 2008 and SQL Server 2005(SQL03).
 
-#Set PowerShell ISE Zoom to 175%
+#Set PowerShell ISE Zoom to 140%
 
-$psISE.Options.Zoom = 175
+$psISE.Options.Zoom = 140
 
 #Set location to the demo folder
 
 Set-Location -Path C:\Demo
 
+#Change error message color to yellow so errors are easier to read
+
+$host.PrivateData.ErrorForegroundColor = 'Yellow'
+
 #Show PowerShell version used in this demo (PowerShell version 4)
 
-Invoke-Command -ComputerName PC01, DC01, SQL01 {
+Invoke-Command -ComputerName PC01, DC01, SQL01, SQL02, SQL03, SQL04 {
     $PSVersionTable.PSVersion
 }
 
 #endregion
 
 #region Intro
+
+#Enter a 1:1 remoting session on SQL02 which is running Windows Server 2012 R2 and SQL Server 2008 R2
+
+Enter-PSSession -ComputerName SQL02
+
+#Import the SQL Server snap-ins
+
+Get-PSSnapin -Name SQLServer* -Registered | Add-PSSnapin
+
+#Show SQL Server 2008 R2 Cmdlets
+
+Get-Command -Module SQLServer*
+
+#Exit the remoting session
+
+Exit-PSSession
 
 #Show that installing the SQL Management Tools modifies the PSModulePath
 
@@ -47,26 +68,24 @@ $env:PSModulePath -split ';'
 Import-Module -Name SQLPS
 
 #This is because Encode-SqlName and Decode-SqlName use unapproved verbs (run the previous command with the -Verbose parameter to see the details)
-#Did you notice how slow importing the module was?
-#And that it changed the current location to the SQLServer PS drive
-
-#Please see: https://blog.netnerds.net/2016/03/can-we-get-these-3-sqlps-issues-fixed-before-sql-server-2016-rtms/
-#And https://connect.microsoft.com/SQLServer/feedback/details/2442788/open-source-sqlps-and-publish-code-on-github
-#Upvote those 4 issues on Connect
-
-#What commands exist in the SQLPS module?
-
-Get-Command -Module SQLPS
+#Did you notice how slow importing the module was? And that it changed the current location to the SQLServer PS drive?
+#These issues are fixed in SQL Server Management Studio March 2016 preview refresh: https://msdn.microsoft.com/en-us/library/mt238290.aspx
 
 #Notice that the current location was changed when the SQLPS module was imported
 
 Set-Location -Path C:\Demo
 
+#Show what PowerShell cmdlets exist in SQL Server 2014
+
+Get-Command -Module SQL* -OutVariable SQL2014Cmdlets
+
+$SQL2014Cmdlets.Count
+
 #endregion
 
 #region Running TSQL code and Stored Procedures from PowerShell
 
-#Using exisiting or writing new TSQL code and calling it with #PowerShell is one
+#Using existing or writing new TSQL code and calling it with #PowerShell is one
 #of the best ways to create tools for working with SQL Server from PowerShell
 
 #This example requires the SQLPS module or SQL Snapin depending on what version of SQL you're using
@@ -103,7 +122,7 @@ $Opt1.Milliseconds / $Opt2.Milliseconds -as [int]
 Invoke-Sqlcmd -ServerInstance SQL01 -Database master -Query 'EXEC sp_databases'
 
 #The one exception is in TSQL, multiple columns with the same name from different tables can be
-#returned #which will generate an error in PowerShell because two objects cannot have the same name
+#returned which will generate an error in PowerShell because two objects cannot have the same name
 
 #This will generate an error because there are 2 columns with the name SPID
 
@@ -242,6 +261,18 @@ Invoke-MrSqlDataReader -ServerInstance SQL01 -Database msdb -Query "
     WHERE database_name = 'pubs'
     ORDER BY backup_start_date"
 
+#Not interested in writing your own code to leverage the .NET Framework?
+#Try Invoke-SqlCmd2 which can be found in my SQL repo on GitHub
+
+Invoke-Sqlcmd2 -ServerInstance SQL01 -Database msdb -Query "
+    SELECT backupset.backup_set_id, backupset.last_family_number, backupset.database_name, backupset.recovery_model, backupset.type,
+    backupset.position, backupmediafamily.physical_device_name, backupset.backup_start_date, backupset.backup_finish_date
+    FROM backupset
+    INNER JOIN backupmediafamily
+    ON backupset.media_set_id = backupmediafamily.media_set_id
+    WHERE database_name = 'pubs'
+    ORDER BY backup_start_date"
+
 #endregion
 
 #region Search Transaction Logs
@@ -258,6 +289,38 @@ Find-MrSqlDatabaseChange -ServerInstance SQL01 -Database pubs -StartTime (Get-Da
 
 Invoke-Sqlcmd -ServerInstance SQL01 -Database pubs -Query "
 select * from employee where emp_id ='VPA30890F'"
+
+#endregion
+
+#region Writing dynamic TSQL Code
+
+function Get-AdventureWorksPerson {
+
+    Invoke-Sqlcmd -ServerInstance SQL01 -Database AdventureWorks2014 -Query "
+    select BusinessEntityID, FirstName, MiddleName, LastName from Person.Person where LastName = 'Browning'"
+}
+
+Get-AdventureWorksPerson
+
+
+function Get-AdventureWorksPerson {
+    [CmdletBinding()]
+    param (
+        [string]$LastName
+    )
+
+    Invoke-Sqlcmd -ServerInstance SQL01 -Database AdventureWorks2014 -Query "
+    select BusinessEntityID, FirstName, MiddleName, LastName from Person.Person where LastName = '$LastName'"
+}
+
+Get-AdventureWorksPerson -LastName Browning
+Get-AdventureWorksPerson -LastName Smith
+
+psEdit -filenames $env:ProgramFiles\WindowsPowerShell\Modules\MrSQL\Find-MrSqlDatabaseChange.ps1
+
+Find-MrSqlDatabaseChange -ServerInstance SQL01 -Database pubs -StartTime (Get-Date -Date '03/28/2016 14:55 PM') -Verbose
+
+Find-MrSqlDatabaseChange -ServerInstance SQL01 -Database northwind -StartTime (Get-Date -Date '04/06/2016 09:23 AM') -Verbose
 
 #endregion
 
@@ -282,6 +345,8 @@ Get-MrSqlDbRestoreInfo -ServerInstance SQL01 -Database pubs -RestoreTime (Get-Da
 Restore-MrSqlDatabase -ServerInstance SQL01 -Database pubstestrestore -Verbose -StopAtLSN '0000002e:00000158:0001'
 
 #The previous command generates an error message because the LSN is not in the correct format
+
+psEdit -filenames $env:ProgramFiles\WindowsPowerShell\Modules\MrSQL\Convert-MrSqlLogSequenceNumber.ps1
 
 #The log sequence number
 
@@ -310,20 +375,11 @@ select * from employee where emp_id ='VPA30890F'"
 
 #endregion
 
-#region Bonus Content
-
-#Things to show:
-Get-MrFunctionsToExport
-Test-MrFunctionsToExport
-
-#Both are part of my MrToolkit module that can be downloaded from my PowerShell repository on Github: https://github.com/mikefrobbins/PowerShell
-
-#endregion
-
-
 #region Cleanup and Reset Demo
 
 Get-ADUser -Filter * -SearchBase 'OU=AdventureWorks Users,OU=Users,OU=Test,DC=mikefrobbins,DC=com' | Remove-ADUser -Confirm:$false
-Invoke-Sqlcmd2 -ServerInstance SQL01 -Database master -Query 'Drop Database pubsrestoretest'
+Invoke-Sqlcmd2 -ServerInstance SQL01 -Database master -Query 'Drop Database pubsrestoretest' -ErrorAction SilentlyContinue
+
+$host.PrivateData.ErrorForegroundColor = '#FFFF0000'
 
 #endregion
