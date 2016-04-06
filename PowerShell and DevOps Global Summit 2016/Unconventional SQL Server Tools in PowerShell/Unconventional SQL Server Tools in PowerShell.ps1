@@ -24,9 +24,9 @@ Twitter: @mikefrobbins
 
 Import-Module ActiveDirectory
 
-#Set PowerShell ISE Zoom to 140%
+#Set PowerShell ISE Zoom to 130%
 
-$psISE.Options.Zoom = 140
+$psISE.Options.Zoom = 130
 
 #Set location to the demo folder
 
@@ -36,9 +36,9 @@ Set-Location -Path C:\Demo
 
 $host.PrivateData.ErrorForegroundColor = 'Yellow'
 
-#Show PowerShell version used in this demo (PowerShell version 4)
+#Show PowerShell version used in this demo (PowerShell version 4 and 5)
 
-Invoke-Command -ComputerName PC01, DC01, SQL01, SQL02, SQL03, SQL04 {
+Invoke-Command -ComputerName PC01, DC01, SQL01, SQL02, SQL03 {
     $PSVersionTable.PSVersion
 }
 
