@@ -16,10 +16,13 @@ Twitter: @mikefrobbins
 
 #The functions shown in this session are part of my MrSQL module which can be downloaded from GitHub: https://github.com/mikefrobbins/SQL
 
-#8 VM's are used during this demonstration. 2 running Windows 10 (PC01 and PC02), 1 running Windows 8.1 (PC03),
+#6 VM's are used during this demonstration. 1 running Windows 10 (PC01), 1 running Windows 8.1 (PC02),
 #3 running Windows Server 2012 R2, one DC (DC01), one SQL 2014 Server (SQL01), and one running SQL 2008 R2 (SQL02),
-#1 running Windows Server 2016 TP4 with SQL Server 2016 RC2 (SQL04)
 #1 running Windows Server 2008 and SQL Server 2005(SQL03).
+
+#Import the active directory module
+
+Import-Module ActiveDirectory
 
 #Set PowerShell ISE Zoom to 140%
 
@@ -71,7 +74,9 @@ Import-Module -Name SQLPS
 #Did you notice how slow importing the module was? And that it changed the current location to the SQLServer PS drive?
 #These issues are fixed in SQL Server Management Studio March 2016 preview refresh: https://msdn.microsoft.com/en-us/library/mt238290.aspx
 
-#Notice that the current location was changed when the SQLPS module was imported
+psEdit -filenames "${env:ProgramFiles(x86)}\Microsoft SQL Server\120\Tools\PowerShell\Modules\SQLPS\SqlPsPostScript.PS1"
+
+#Set the location back to the demo folder
 
 Set-Location -Path C:\Demo
 
@@ -132,11 +137,23 @@ Invoke-Sqlcmd -ServerInstance SQL01 -Database master -Query 'EXEC sp_who2'
 
 #region Working with SQL Server through the use of SMO (SQL Management Objects)
 
+#SMO can be used to query SQL server that don't have any version of PowerShell installed
+#SMO does require the SQL manageemnt tools to be installed on the machine running the commands
+
+$SQL = New-Object –TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList 'SQL03'
+
+$SQL.EnumProcesses() |
+Select-Object -Property Name, Spid, Command, Status, Login, Database, BlockingSpid |
+Format-Table –Auto
+
+#Use SMO to query a SQL 2014 server
+
 $SQL = New-Object –TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList 'SQL01'
 
 $SQL.EnumProcesses() |
 Select-Object -Property Name, Spid, Command, Status, Login, Database, BlockingSpid |
 Format-Table –Auto
+
 
 #endregion
 
@@ -151,10 +168,11 @@ Get-ChildItem -Path SQLServer:\SQL\SQL01\Default\Databases
 $SQL.Databases
 
 #Look at the object type returned by that previous command:
+($SQL.Databases | Get-Member).TypeName[0]
+
+#It's the same object type as what the SQL PowerShell provider returns
 
 (Get-ChildItem -Path SQLServer:\SQL\SQL01\Default\Databases | Get-Member).TypeName[0]
-
-($SQL.Databases | Get-Member).TypeName[0]
 
 #Why was the output different between the two?
 #Because the SQL Provider is filtering out the system databases until the Force parameter is used
@@ -166,6 +184,10 @@ Get-ChildItem -Path SQLServer:\SQL\SQL01\Default\Databases -Force
 #region SQL cmdlets
 
 Get-SqlDatabase -ServerInstance SQL01
+
+#That cmdlet also returns the same type of object
+
+(Get-SqlDatabase -ServerInstance SQL01 | Get-Member).TypeName[0]
 
 #endregion
 
@@ -250,7 +272,11 @@ New-ADUser -Path 'OU=AdventureWorks Users,OU=Users,OU=Test,DC=mikefrobbins,DC=co
 
 #Query SQL Server from PowerShell without the SQL module or snapin: http://mikefrobbins.com/2015/07/09/query-sql-server-from-powershell-without-the-sql-module-or-snapin/
 
+#Show my SQL data reader function
+
 psEdit -filenames "$env:ProgramFiles\WindowsPowerShell\Modules\MrSQL\Invoke-MrSqlDataReader.ps1"
+
+#Query SQL01 using the .NET framework
 
 Invoke-MrSqlDataReader -ServerInstance SQL01 -Database msdb -Query "
     SELECT backupset.backup_set_id, backupset.last_family_number, backupset.database_name, backupset.recovery_model, backupset.type,
@@ -260,6 +286,33 @@ Invoke-MrSqlDataReader -ServerInstance SQL01 -Database msdb -Query "
     ON backupset.media_set_id = backupmediafamily.media_set_id
     WHERE database_name = 'pubs'
     ORDER BY backup_start_date"
+
+#Run the following commands on PC02
+
+$psISE.Options.Zoom = 140
+
+Get-Module -Name *sql* -ListAvailable
+
+Invoke-MrSqlDataReader -ServerInstance SQL01 -Database msdb -Query "
+    SELECT backupset.backup_set_id, backupset.last_family_number, backupset.database_name, backupset.recovery_model, backupset.type,
+    backupset.position, backupmediafamily.physical_device_name, backupset.backup_start_date, backupset.backup_finish_date
+    FROM backupset
+    INNER JOIN backupmediafamily
+    ON backupset.media_set_id = backupmediafamily.media_set_id
+    WHERE database_name = 'pubs'
+    ORDER BY backup_start_date"
+
+function Get-DatabaseList {
+    [CmdletBinding()]
+    param (
+        [string]$ComputerName
+    )
+    Invoke-MrSqlDataReader -ServerInstance $ComputerName -Database msdb -Query "
+        select name from sys.databases
+    "
+}
+
+Get-DatabaseList -ComputerName sql03
 
 #Not interested in writing your own code to leverage the .NET Framework?
 #Try Invoke-SqlCmd2 which can be found in my SQL repo on GitHub
@@ -279,13 +332,15 @@ Invoke-Sqlcmd2 -ServerInstance SQL01 -Database msdb -Query "
 
 #Determine who deleted SQL Server database records by querying the transaction log with PowerShell: http://mikefrobbins.com/2015/07/16/determine-who-deleted-sql-server-database-records-by-querying-the-transaction-log-with-powershell/
 
+#Show my find database change function which can be used to find insert, update, or delete operations in transaction log backups of the active transaction log
+
 psEdit -filenames "$env:ProgramFiles\WindowsPowerShell\Modules\MrSQL\Find-MrSqlDatabaseChange.ps1"
 
 #Find delete operations that occured in the pubs database since March 28th
 
 Find-MrSqlDatabaseChange -ServerInstance SQL01 -Database pubs -StartTime (Get-Date -Date '03/28/2016 14:55 PM')
 
-#What was deleted?
+#We received a report that the follwoing record is missing from the database and no one has owned up to deleting the record
 
 Invoke-Sqlcmd -ServerInstance SQL01 -Database pubs -Query "
 select * from employee where emp_id ='VPA30890F'"
@@ -293,6 +348,8 @@ select * from employee where emp_id ='VPA30890F'"
 #endregion
 
 #region Writing dynamic TSQL Code
+
+#Example of a static function using some code shown previously in the demo
 
 function Get-AdventureWorksPerson {
 
@@ -302,6 +359,7 @@ function Get-AdventureWorksPerson {
 
 Get-AdventureWorksPerson
 
+#Parameterize the function and use the parameterized value to generate dynamic SQL
 
 function Get-AdventureWorksPerson {
     [CmdletBinding()]
@@ -316,7 +374,11 @@ function Get-AdventureWorksPerson {
 Get-AdventureWorksPerson -LastName Browning
 Get-AdventureWorksPerson -LastName Smith
 
+#Show the dynamic TSQL that my find database change function creates
+
 psEdit -filenames $env:ProgramFiles\WindowsPowerShell\Modules\MrSQL\Find-MrSqlDatabaseChange.ps1
+
+#Show the queries and run them in SSMS
 
 Find-MrSqlDatabaseChange -ServerInstance SQL01 -Database pubs -StartTime (Get-Date -Date '03/28/2016 14:55 PM') -Verbose
 
