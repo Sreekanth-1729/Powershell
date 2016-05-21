@@ -16,6 +16,10 @@ break
 
 $psISE.Options.Zoom = 175
 
+#Import the various modules that I might decide to use during the presentation
+
+Import-Module -Name SQLPS, ActiveDirectory, MrSQL, MrToolkit
+
 #Set location
 
 Set-Location -Path C:\Demo
@@ -89,13 +93,16 @@ Get-MrPSVersion
 
 Get-ChildItem -Path Function:\Get-*Version
 
-#If you want to remove functions from your current session, remove them for the Function PSDrive
+#If you want to remove functions from your current session, remove them from the Function PSDrive
 
 Get-ChildItem -Path Function:\Get-*Version | Remove-Item
 
 #Verify they were indeed removed
 
 Get-ChildItem -Path Function:\Get-*Version
+
+#If the functions were loaded as part of a module, simply unload the module to remove them
+#Remove-Module -Name <ModuleName>
 
 #help about_Functions -Full
 
@@ -193,7 +200,6 @@ Get-Command -Name Test-MrCmdletBinding -Syntax
 #endregion
 
 #region SupportsShouldProcess
-
 
 function Test-MrSupportsShouldProcess {
     
@@ -319,12 +325,13 @@ function Test-MrConsoleColorValidation {
 Test-MrConsoleColorValidation
 Test-MrConsoleColorValidation -Color Blue, DarkBlue
 Test-MrConsoleColorValidation -Color Pink
+Test-MrConsoleColorValidation -
 
 #To find enumerations, download Get-Type from the TechNet script repository (written by Warren Frame aka Cookie Monster)
 #https://gallery.technet.microsoft.com/scriptcenter/Get-Type-Get-exported-fee19cf7
 
-#Get-Type -BaseType System.Enum
-#[System.Enum]::GetValues([System.DayOfWeek])
+Get-Type -BaseType System.Enum
+[System.Enum]::GetValues([System.DayOfWeek])
 
 #Use the IPAddress type accelerator to validate IPv4 and IPv6 addresses
 
@@ -640,5 +647,11 @@ help Get-MrAutoStoppedService -Full
 
 #Walkthrough: An example of how I write PowerShell functions
 #http://mikefrobbins.com/2015/06/19/walkthrough-an-example-of-how-i-write-powershell-functions/
+
+#Free eBook on PowerShell Advanced Functions
+#http://mikefrobbins.com/2015/04/17/free-ebook-on-powershell-advanced-functions/
+
+#Free eBooks on PowerShell.org
+#http://powershell.org/freebooks/
 
 #endregion
