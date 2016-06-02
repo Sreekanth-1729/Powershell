@@ -407,7 +407,7 @@ Start-DscConfiguration -Wait -Path .\DSCSMB -Verbose
 
 Configuration SqlInstance {
 
-    Import-DscResource -Module xSqlPs, xNetworking
+    Import-DscResource -Module PSDesiredStateConfiguration, xSqlPs, xNetworking
  
     Node SQL01 {
  
@@ -505,7 +505,7 @@ Configuration sqltest {
         [pscredential]$Credential
     )
 
-    Import-DscResource -Module xNetworking, xSQLServer
+    Import-DscResource -Module PSDesiredStateConfiguration, xNetworking, xSQLServer
 
     Node $AllNodes.NodeName {
         xSQLServerSetup installSQL {
@@ -569,6 +569,7 @@ psEdit -filenames .\sqltest\SQL01.mof
 
 #Use PKI. A certificate has been created on SQL01. The public key
 #has been exported to a file and the Thumbprint has been noted.
+#PowerShell v5 requires: KeyUsage to contain KeyEncipherment and DataEncipherment & EnhancedKeyUsage must specify 'Document Encryption'
 
 #Show the CertificateID property for the LCM on SQL01
 
@@ -580,7 +581,7 @@ Configuration LCMConfig {
         	
 	Node SQL01	{
 		LocalConfigurationManager {
-            CertificateID = 'BA1735B4EEC3EFEF92B9D8E8AB91EB39DA4F951F'            	
+            CertificateID = '6CBBBDDCDE53731F4B3B71BC2E8629D1A49A8D1E'            	
 		}
 	}
 
@@ -609,7 +610,7 @@ $ConfigData = @{
             Features = 'SQLEngine'
             InstanceName = 'MSSQLSERVER'
             SetupCredential = $Credential
-            CertificateFile = 'C:\demo\testcert.cer'
+            CertificateFile = 'C:\demo\testcert03.cer'
         }
     )
 }
@@ -649,7 +650,7 @@ $ConfigData = @{
 
 configuration TestEnvironment {
 
-    Import-DscResource -Module cMrSQLRecoveryModel, xSmbShare, PowerShellAccessControl
+    Import-DscResource -Module PSDesiredStateConfiguration, cMrSQLRecoveryModel, xSmbShare, PowerShellAccessControl
 	
 	node $AllNodes.Where({$_.Role -eq 'SQLServer'}).NodeName {
 
@@ -767,7 +768,7 @@ Configuration LCM_SMBPULL {
 			AllowModuleOverwrite = $True
             ConfigurationMode = 'ApplyAndAutoCorrect'
 			RefreshMode = 'Pull'
-            CertificateID = 'BA1735B4EEC3EFEF92B9D8E8AB91EB39DA4F951F'
+            CertificateID = '6CBBBDDCDE53731F4B3B71BC2E8629D1A49A8D1E'
 			ConfigurationID = $Guid
 			DownloadManagerName = 'DscFileDownloadManager'
             DownloadManagerCustomData = @{
@@ -810,7 +811,7 @@ $ConfigData = @{
             NodeName = 'SQL01'
             Role = 'SQLServer'
             ServerInstance = 'SQL01'
-            Database = 'NorthWind', 'AdventureWorks2012', 'Pubs'
+            Database = 'NorthWind', 'AdventureWorks2014', 'Pubs'
             RecoveryModel = 'Simple'
             Services = (Get-MrAutoService -ComputerName SQL01).Name
         }
