@@ -18,7 +18,10 @@ Twitter: @mikefrobbins
 #2 running Windows Server 2012 R2, one DC (DC01), one SQL 2014 Server (SQL01).
 
 #Import my MrToolkit module which can be downloaded from https://github.com/mikefrobbins/PowerShell
-Import-Module -Name MrToolkit
+Import-Module -Name MrToolkit, SQLPS
+
+#The job cmdlets seem to take a long time to load on this VM, so warm them up
+Get-Job
 
 #Set PowerShell ISE Zoom to 175%
 
@@ -128,7 +131,7 @@ Start-Process \\SQL01\c$\Windows\System32\Configuration
 
 #Apply the configuration via DSC Push Mode
 
-Start-DscConfiguration -Wait -Path .\NameOfConfiguration -Verbose -Force
+Start-DscConfiguration -Wait -Path .\MyConfigurationName -Verbose -Force
 
 #Get the current configuration of SQL01
 
