@@ -7,7 +7,7 @@ break
 #region Presentation Prep
 
 <#
-Building Unconventional SQL Server Tools in PowerShell with Advanced Functions and Script Modules
+Building Unconventional SQL Server Tools in PowerShell
 Presentation from SQL Saturday #498 Chattanooga 2016
 Author:  Mike F Robbins
 Website: http://mikefrobbins.com
@@ -21,7 +21,6 @@ Twitter: @mikefrobbins
 #1 running Windows Server 2008 and SQL Server 2005(SQL03).
 
 #Warm things up that seem to take a while on my demo VM
-#Import the active directory module
 
 Import-Module ActiveDirectory, SQLPS, MrSQL
 Get-PSDrive
@@ -291,7 +290,9 @@ Invoke-MrSqlDataReader -ServerInstance SQL01 -Database msdb -Query "
 
 #Run the following commands on PC02
 
-$psISE.Options.Zoom = 140
+Import-Module -Name MrSQL
+
+$psISE.Options.Zoom = 130
 
 Get-Module -Name *sql* -ListAvailable
 
@@ -331,6 +332,8 @@ Invoke-Sqlcmd2 -ServerInstance SQL01 -Database msdb -Query "
 #endregion
 
 #region Search Transaction Logs
+
+#Move back to PC01
 
 #Determine who deleted SQL Server database records by querying the transaction log with PowerShell: http://mikefrobbins.com/2015/07/16/determine-who-deleted-sql-server-database-records-by-querying-the-transaction-log-with-powershell/
 
