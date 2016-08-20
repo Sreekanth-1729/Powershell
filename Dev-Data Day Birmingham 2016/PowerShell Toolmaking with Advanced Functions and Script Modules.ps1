@@ -28,7 +28,7 @@ Set-Location -Path C:\Demo
 
 Clear-Host
 
-#Show PowerShell version used in this demo (PowerShell version 4)
+#Show PowerShell version used in this demo (PowerShell version 5)
 
 Invoke-Command -ComputerName PC01, DC01, SQL01 {
     $PSVersionTable.PSVersion
