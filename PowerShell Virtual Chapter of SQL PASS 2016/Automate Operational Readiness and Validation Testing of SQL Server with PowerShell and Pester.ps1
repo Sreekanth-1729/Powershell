@@ -807,6 +807,6 @@ Start-Process http://mikefrobbins.com/2016/09/22/store-and-retrieve-powershell-h
 $psISE.Options.Zoom = 100
 Set-Location -Path C:\
 $Path = 'C:\Demo'
-Remove-Item -Path "$Path\Test" -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+Remove-Item -Path "$Path\Pester", "$Path\Test" -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
 #endregion
