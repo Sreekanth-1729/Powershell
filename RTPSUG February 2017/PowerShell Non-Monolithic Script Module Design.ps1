@@ -180,6 +180,9 @@ Get-MrComputerName
 #In order to take advantage of module autoloading, a script module needs to be saved in a folder with the same base name as the PSM1
 #file and in a location specified in $env:PSModulePath 
 
+#Show where the module currently resides at
+explorer.exe $Path\MyModule
+
 #Show the PSModulePath on my computer
 $env:PSModulePath -split ';'
 
@@ -260,6 +263,7 @@ Get-Command -Module MyModule
 #Even after manually importing the module, no commands are exported
 Import-Module -Name MyModule
 Get-Command -Module MyModule
+Get-Module -Name MyModule
 
 #Add the RootModule information to the module manifest
 Update-ModuleManifest -Path $env:ProgramFiles\WindowsPowerShell\Modules\MyModule\MyModule.psd1 -RootModule MyModule
