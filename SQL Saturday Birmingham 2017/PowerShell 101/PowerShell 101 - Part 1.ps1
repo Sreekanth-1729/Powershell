@@ -239,11 +239,11 @@ $Numbers -contains 7
 7 -in $Numbers
 
 #Replace operator
-'SQL Saturday #515 - Baton Rouge' -Replace 'saturday','sat'
+'SQL Saturday #594 - Birmingham' -Replace 'saturday','sat'
 
 #Replace method
-'SQL Saturday #515 - Baton Rouge'.Replace('saturday','sat')
-'SQL Saturday #515 - Baton Rouge'.Replace('Saturday','Sat')
+'SQL Saturday #594 - Birmingham'.Replace('saturday','sat')
+'SQL Saturday #594 - Birmingham'.Replace('Saturday','Sat')
 
 $Numbers
 [array]::Reverse($Numbers)

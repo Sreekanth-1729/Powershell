@@ -12,9 +12,9 @@ Twitter: @mikefrobbins
 
 Start-Sleep -Seconds 1800
 
-#Set PowerShell ISE Zoom to 150%
+#Set PowerShell ISE Zoom to 175%
 
-$psISE.Options.Zoom = 150
+$psISE.Options.Zoom = 175
 $Path = 'C:\Demo'
 
 #Create the C:\Demo older if it doesn't already exist
@@ -390,6 +390,7 @@ Remove-Module -Name MyModule
 Remove-Item -Path $env:ProgramFiles\WindowsPowerShell\Modules\MyModule -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
 #Import my MrToolkit module which can be downloaded from my PowerShell repo on GitHub: https://github.com/mikefrobbins/PowerShell
+Import-Module 'U:\GitHub\ScriptingGames\2015-08 Scripting Games Puzzle\MrGeo.psd1'
 Import-Module U:\GitHub\PowerShell\MrToolkit\MrToolkit.psd1
 
 #PowerShell function for creating a script module template
