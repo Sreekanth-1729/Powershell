@@ -12,9 +12,9 @@ Twitter: @mikefrobbins
 
 Start-Sleep -Seconds 1800
 
-#Set PowerShell ISE Zoom to 150%
+#Set PowerShell ISE Zoom to 175%
 
-$psISE.Options.Zoom = 150
+$psISE.Options.Zoom = 175
 $Path = 'C:\Demo'
 
 #Create the C:\Demo older if it doesn't already exist
