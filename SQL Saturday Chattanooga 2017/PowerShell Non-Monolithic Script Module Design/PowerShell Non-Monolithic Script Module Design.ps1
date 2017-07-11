@@ -14,7 +14,7 @@ Start-Sleep -Seconds 1800
 
 #Set PowerShell ISE Zoom to 175%
 
-$psISE.Options.Zoom = 175
+$psISE.Options.Zoom = 200
 $Path = 'C:\Demo'
 
 #Create the C:\Demo older if it doesn't already exist
@@ -520,4 +520,5 @@ Remove-Module -Name MyModule -ErrorAction SilentlyContinue
 Remove-Item -Path "$Path\Get-MrPSVersion.ps1", "$Path\Get-MrComputerName.ps1" -ErrorAction SilentlyContinue
 Remove-Item -Path $env:ProgramFiles\WindowsPowerShell\Modules\MyModule -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 Remove-Module -Name MrToolkit -ErrorAction SilentlyContinue
+Remove-Item -Path C:\Demo\MyModule -Confirm:$false -Recurse
 #endregion
