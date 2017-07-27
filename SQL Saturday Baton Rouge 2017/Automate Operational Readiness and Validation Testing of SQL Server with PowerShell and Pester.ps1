@@ -503,11 +503,11 @@ psEdit -filenames "$Path\Test\Validate-SQLServer.ps1"
 . "$Path\Test\Validate-SQLServer.ps1"
 
 #Run the test against 2 different SQL servers
-Test-MrSQLServer -ComputerName SQL014, SQL16
+Test-MrSQLServer -ComputerName SQL14, SQL16
 
 #Loop through a collection of items with the Pester TestCases parameter instead of using a foreach loop
 Describe "Simple Validation of a SQL Server" {
-    $Servers = @{Server = 'sql011'}, @{Server = 'sql02'}
+    $Servers = @{Server = 'sql14'}, @{Server = 'sql16'}
     It "The SQL Server Service on <Server> Should Be Running" -TestCases $Servers {
         param($Server)
         Get-Service -ComputerName $Server -Name MSSQLServer | Select-Object -ExpandProperty status | Should Be 'Running'
