@@ -12,9 +12,9 @@ Twitter: @mikefrobbins
 
 Start-Sleep -Seconds 1800
 
-#Set PowerShell ISE Zoom to 175%
+#Set PowerShell ISE Zoom to 140%
 
-$psISE.Options.Zoom = 175
+$psISE.Options.Zoom = 140
 $Path = 'C:\Demo'
 
 #endregion
@@ -51,6 +51,15 @@ Set-Location -Path "$Path\Pester\NumberParity"
 
 #Open the Pester test and function
 psedit -filenames (Get-ChildItem -Path "$Path\Pester\NumberParity")
+
+#Create a new PowerShell script module with the New-MrModule function from my MrToolkit module
+New-MrScriptModule -Name MyModule -Path $Path -Author 'Mike F Robbins' -CompanyName 'mikefrobbins.com' -Description 'My Script Module' -PowerShellVersion 3.0
+
+#Create a new function with my New-MrFunction module
+New-MrFunction -Name Get-MrPsVersion -Path $Path\MyModule
+
+#Show the new function
+psedit $Path\MyModule
 
 #Run the Pester test
 Invoke-Pester
