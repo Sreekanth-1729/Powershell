@@ -434,7 +434,7 @@ Invoke-Command -ComputerName SQL16 {Start-Service -Name SQLServerAgent}
 Invoke-Pester
 
 #Use the operational validation framework to run the pester test
-Invoke-OperationValidation -testFilePath "$Path\Test\sqlserver.tests.ps1" -IncludePesterOutput
+OperationValidation\Invoke-OperationValidation -testFilePath "$Path\Test\sqlserver.tests.ps1" -IncludePesterOutput
 
 #Create a function for performing operational validation of SQL Server
 New-Item -Path "$Path\Test\Validate-SQLServer.ps1" -Force
@@ -823,6 +823,6 @@ Start-Process http://mikefrobbins.com/2016/09/22/store-and-retrieve-powershell-h
 $psISE.Options.Zoom = 100
 Set-Location -Path C:\
 $Path = 'C:\Demo'
-Remove-Item -Path "$Path\Pester", "$Path\Test" -Recurse -Confirm:$false -ErrorAction SilentlyContinue
+Remove-Item -Path "$Path\Pester", "$Path\Test", "$Path\MyModule" -Recurse -Confirm:$false -ErrorAction SilentlyContinue
 
 #endregion
