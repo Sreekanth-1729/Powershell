@@ -1,7 +1,7 @@
 ﻿#region Presentation Prep
 
-#Set PowerShell ISE Zoom to 150%
-$psISE.Options.Zoom = 150
+#Set PowerShell ISE Zoom to 175%
+$psISE.Options.Zoom = 175
 
 <#
 Multiline Comment Example
@@ -77,7 +77,7 @@ Get-Command -Module SQLServer*
 Exit-PSSession
 
 #One-To-Many Remoting
-Invoke-Command -ComputerName DC01, SQL08, SQL16 {
+Invoke-Command -ComputerName DC01, SQL08, SQL14 {
     $PSVersionTable.PSVersion
 }
 
